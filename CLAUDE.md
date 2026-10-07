@@ -63,13 +63,19 @@ Machine notes: Node, Java 17, Maven, Git installed. **No Docker, no DB yet** (in
 |---|---|---|
 | 1 | codegen on `/login` to observe locators | ✅ got getByRole ×3 + getByText for flash |
 | 2 | Locator priority (table exercise) | ⚠ not passed — folded into Task 3 review. Table format frustrated them; re-taught with mental model (HTML = nested boxes, attributes as labels, DevTools hover highlight "must fit exactly", locator analogy "tell a friend which thing to grab", decision flow: interactive → getByRole/getByLabel; read-only text → getByText; else `#id`). Recall quiz on 2026-10-04: all 3 correct. Revealed: `.flash.success` (no space), why getByRole > CSS, why target `<button>` not inner `<i>` icon ("doorbell vs sticker"). |
-| 3 | Login success test (AAA: Arrange/Act/Assert) | 👉 in progress |
-| 4 | Invalid login → assert error message (use red flash `.flash.error` / `#flash`) | ⬜ |
-| 5 | Checkboxes + Dropdown pages | ⬜ |
-| 6 | Duplicated setup → `@BeforeEach` / `@AfterEach` | ⬜ (user already started this on their own, see below) |
+| 3 | Login success test (AAA: Arrange/Act/Assert) | ✅ closed 2026-10-07 |
+| 4 | Invalid login → assert error message | ✅ closed 2026-10-07 |
+| 5 | Checkboxes + Dropdown pages | ⬜ next — practice site not chosen yet (PTA has none; expandtesting has them but ad-injected elements break loose locators) |
+| 6 | Duplicated setup → `@BeforeEach` / `@AfterEach` | ✅ done in `LoginTest` (navigate also moved into `@BeforeEach`) |
 
-Task 3 armory already given: `getByLabel().fill()`, `getByRole(BUTTON).click()`, `assertThat(page).hasURL()`, `assertThat(locator).isVisible()/containsText()`; import `com.microsoft.playwright.options.AriaRole`. Asked them to try `setName("Login")` without the leading space and figure out why it still matches. Also explained headless vs headed, `setSlowMo`, `PWDEBUG`, and previewed that headless should become a config value in Stage 1.
+**Practice site switched (2026-10-06):** the-internet.herokuapp.com timed out on `navigate` ~2/3 runs from this machine; practice.expandtesting.com works but Google ads inject `aria-label="...password..."` links → `getByLabel("Password")` strict-mode violation. Now using **https://practicetestautomation.com/practice-test-login/** (no ads, <1–2s). `TheInternetTest` deleted (still in git history at `168b0a9`). Stage 1 still saucedemo.
 
-**Current state of `LoginTest.java` (WIP, compiles, no @Test yet):** user copied the JUnit lifecycle pattern from the Playwright docs — static Playwright/Browser in `@BeforeAll`/`@AfterAll`, new `BrowserContext` + `Page` per test in `@BeforeEach`/`@AfterEach`. Next session: before reviewing, check they can explain *why* Browser is static/per-class but Context/Page are per-test (test isolation) — don't assume they understand copied code. Unused imports present.
+**`LoginTest.java` state (green, 3 tests):** title (`hasTitle` Pattern with escaped `\\|`), valid login (`.post-title` text + `hasURL(Pattern "logged-in-successfully")`), invalid login (`#error` text + `hasURL(Pattern "practice-test-login")`). Did fail-on-purpose on the title assert and read Expected/Received/line correctly.
 
-Note: credentials for `/login` are printed on the page itself (`tomsmith` / `SuperSecretPassword!`).
+Learned Day 2: AAA, `@BeforeEach` test isolation (asked "must I run the fail case first?" → explained fresh context per test + JUnit no ordering), getByRole `name` = accessible name ≠ HTML `name` attr, locator ladder incl. XPath as last resort (interview topic in TH market), strict mode, String vs `Pattern` in `hasURL`/`hasTitle`, regex `|` = OR trap, 1 behavior per test / multiple related asserts, soft assertions exist, `mvn test` vs `mvn clean test` (stale `.class` after deleting a file).
+
+Still open (small): `setName(Pattern.compile("Submit", CASE_INSENSITIVE))` unnecessary — homework "why does plain `setName("Submit")` match?" (answer: default substring + case-insensitive; `setExact`). README still describes `TheInternetTest`. Method names long (`fillUserNameAndPassword...InTheNextPage`) — revisit naming in Stage 1.
+
+Weak spots seen: says "แก้ละ" before saving (fixed 1 of 3 items twice) — keep verifying the saved file; copies old-site values into new tests; loosened an assert without a reason. Honest when they don't know ("ใช้ pattern ไม่เป็น") — reward that. Gets frustrated by repeated environment fixes and long lists → give ONE item at a time.
+
+Environment (this machine, corporate network with TLS inspection): Java/Maven/VS Code need `-Djavax.net.ssl.trustStoreType=Windows-ROOT` (set in VS Code `java.jdt.ls.vmargs`; `MAVEN_OPTS` not set persistently yet — new deps will fail with PKIX in terminal). If VS Code Java breaks: close VS Code, delete its `workspaceStorage/<hash>/redhat.java`, reopen.
